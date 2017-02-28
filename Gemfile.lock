@@ -38,6 +38,9 @@ GEM
       i18n (~> 0.7)
       minitest (~> 5.1)
       tzinfo (~> 1.1)
+    annotate (2.6.5)
+      activerecord (>= 2.3.0)
+      rake (>= 0.8.7)
     ansi (1.5.0)
     arel (7.1.4)
     autoprefixer-rails (6.7.5)
@@ -196,6 +199,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  annotate
   bcrypt (= 3.1.11)
   bootstrap-sass (= 3.3.6)
   byebug (= 9.0.0)
