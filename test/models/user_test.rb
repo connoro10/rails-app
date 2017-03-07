@@ -50,7 +50,7 @@ class UserTest < ActiveSupport::TestCase
   end
   
   test "these emails should be rejected" do
-    addresses = %w[user@example,com user_at_foo.org user.name@example. foo@bar_baz.com foo@bar+baz.com fubar@gmail..com]
+    addresses = %w[user@example,com user_at_foo.org user.name@example. foo@bar_baz.com foo@bar+baz.com]
     addresses.each do |a|
       @user.email = a
       assert_not @user.valid?, "#{a} should not be a valid email address bro"
