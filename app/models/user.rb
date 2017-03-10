@@ -1,9 +1,12 @@
 class User < ApplicationRecord
-    #accessors provide a get and set function
-  attr_accessor :remember_token
-  
+
   #provides database constraints
-  before_save { self.email = email.downcase }
+  before_save :downcase_email
+  #confirmation email
+  before_create :create_activation_digest
+  #provides getters and setters 
+  attr_accessor :remember_token, :activation_token
+  #checks these settings and returns if the user is valid or not
   validates :name,  presence: true, length: { maximum: 50 }
   VALID_EMAIL_REGEX = /\A[\w+\-.]+@[a-z\d\-.]+\.[a-z]+\z/i
   validates :email, presence: true, length: { maximum: 255 },
@@ -18,6 +21,17 @@ class User < ApplicationRecord
                                                   BCrypt::Engine.cost
     BCrypt::Password.create(string, cost: cost)
   end
+  
+  def downcase_email
+    self.email = email.downcase
+  end
+  
+  #creates and assigns the activation token and digest
+  def create_activation_digest
+    self.activation_token = User.new_token
+    self.activation_digest = User.digest(activation_token)
+  end
+  
 
   # Returns a random token used as a key for remembering sessions 
   def User.new_token
@@ -35,8 +49,18 @@ class User < ApplicationRecord
   end
   
    # Returns true if the given token matches the digest. Verifies that the user retrieved from the database is the correct user
-  def authenticated?(remember_token)
-    return false if remember_digest.nil?
-    BCrypt::Password.new(remember_digest).is_password?(remember_token)
+  # Returns true if the given token matches the digest.
+  def authenticated?(attribute, token)
+    digest = send("#{attribute}_digest") #HOLY METAPROGRAMMING calls (BLANK_digest on this)
+    return false if digest.nil?
+    BCrypt::Password.new(digest).is_password?(token)
+  end
+  
+  def activate
+    update_columns(activated: true, activated_at: Time.zone.now)
+  end
+  
+  def send_activation_email
+    UserMailer.account_activation(self).deliver_now
   end
 end
