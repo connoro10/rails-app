@@ -1,11 +1,10 @@
 class User < ApplicationRecord
-
   #provides database constraints
   before_save :downcase_email
   #confirmation email
   before_create :create_activation_digest
   #provides getters and setters 
-  attr_accessor :remember_token, :activation_token
+  attr_accessor :remember_token, :activation_token, :reset_token
   #checks these settings and returns if the user is valid or not
   validates :name,  presence: true, length: { maximum: 50 }
   VALID_EMAIL_REGEX = /\A[\w+\-.]+@[a-z\d\-.]+\.[a-z]+\z/i
@@ -32,7 +31,22 @@ class User < ApplicationRecord
     self.activation_digest = User.digest(activation_token)
   end
   
-
+  #returns true if a password reset has expired
+  def password_reset_expired?
+    reset_sent_at < 2.hours.ago
+  end
+  
+  # Sets the password reset attributes.
+  def create_reset_digest
+    self.reset_token = User.new_token
+    update_columns(reset_digest: User.digest(reset_token), reset_sent_at: Time.zone.now)
+  end
+  
+  # Sends password reset email.
+  def send_password_reset_email
+    UserMailer.password_reset(self).deliver_now
+  end
+  
   # Returns a random token used as a key for remembering sessions 
   def User.new_token
     SecureRandom.urlsafe_base64
