@@ -1,4 +1,5 @@
 class User < ApplicationRecord
+  has_many :microposts, dependent: :destroy
   #provides database constraints
   before_save :downcase_email
   #confirmation email
